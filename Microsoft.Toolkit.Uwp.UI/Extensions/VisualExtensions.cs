@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Globalization;
-using System.Linq;
 using System.Numerics;
 using Windows.UI.Composition;
 using Windows.UI.Xaml;
@@ -17,160 +15,6 @@ namespace Microsoft.Toolkit.Uwp.UI
     /// </summary>
     public static class VisualExtensions
     {
-        /// <summary>
-        /// Converts a <see cref="string"/> to <see cref="Vector2"/>
-        /// </summary>
-        /// <param name="str">A string in the format of "float, float"</param>
-        /// <returns><see cref="Vector2"/></returns>
-        public static Vector2 ToVector2(this string str)
-        {
-            try
-            {
-                var strLength = str.Count();
-                if (strLength < 1)
-                {
-                    throw new Exception();
-                }
-                else if (str[0] == '<' && str[strLength - 1] == '>')
-                {
-                    str = str.Substring(1, strLength - 2);
-                }
-
-                string[] values = str.Split(',');
-
-                var count = values.Count();
-                Vector2 vector;
-
-                if (count == 1)
-                {
-                    vector = new Vector2(float.Parse(values[0], CultureInfo.InvariantCulture));
-                }
-                else if (count == 2)
-                {
-                    vector = new Vector2(float.Parse(values[0], CultureInfo.InvariantCulture), float.Parse(values[1], CultureInfo.InvariantCulture));
-                }
-                else
-                {
-                    throw new Exception();
-                }
-
-                return vector;
-            }
-            catch (Exception)
-            {
-                throw new FormatException($"Cannot convert {str} to Vector2. Use format \"float, float\"");
-            }
-        }
-
-        /// <summary>
-        /// Converts a <see cref="string"/> to <see cref="Vector3"/>
-        /// </summary>
-        /// <param name="str">A string in the format of "float, float, float"</param>
-        /// <returns><see cref="Vector3"/></returns>
-        public static Vector3 ToVector3(this string str)
-        {
-            try
-            {
-                var strLength = str.Count();
-                if (strLength < 1)
-                {
-                    throw new Exception();
-                }
-                else if (str[0] == '<' && str[strLength - 1] == '>')
-                {
-                    str = str.Substring(1, strLength - 2);
-                }
-
-                string[] values = str.Split(',');
-
-                var count = values.Count();
-                Vector3 vector;
-
-                if (count == 1)
-                {
-                    vector = new Vector3(float.Parse(values[0], CultureInfo.InvariantCulture));
-                }
-                else if (count == 3)
-                {
-                    vector = new Vector3(
-                        float.Parse(values[0], CultureInfo.InvariantCulture),
-                        float.Parse(values[1], CultureInfo.InvariantCulture),
-                        float.Parse(values[2], CultureInfo.InvariantCulture));
-                }
-                else
-                {
-                    throw new Exception();
-                }
-
-                return vector;
-            }
-            catch (Exception)
-            {
-                throw new FormatException($"Cannot convert {str} to Vector3. Use format \"float, float, float\"");
-            }
-        }
-
-        /// <summary>
-        /// Converts a <see cref="string"/> to <see cref="Vector4"/>
-        /// </summary>
-        /// <param name="str">A string in the format of "float, float, float, float"</param>
-        /// <returns><see cref="Vector4"/></returns>
-        public static Vector4 ToVector4(this string str)
-        {
-            try
-            {
-                var strLength = str.Count();
-                if (strLength < 1)
-                {
-                    throw new Exception();
-                }
-                else if (str[0] == '<' && str[strLength - 1] == '>')
-                {
-                    str = str.Substring(1, strLength - 2);
-                }
-
-                string[] values = str.Split(',');
-
-                var count = values.Count();
-                Vector4 vector;
-
-                if (count == 1)
-                {
-                    vector = new Vector4(float.Parse(values[0], CultureInfo.InvariantCulture));
-                }
-                else if (count == 4)
-                {
-                    vector = new Vector4(
-                        float.Parse(values[0], CultureInfo.InvariantCulture),
-                        float.Parse(values[1], CultureInfo.InvariantCulture),
-                        float.Parse(values[2], CultureInfo.InvariantCulture),
-                        float.Parse(values[3], CultureInfo.InvariantCulture));
-                }
-                else
-                {
-                    throw new Exception();
-                }
-
-                return vector;
-            }
-            catch (Exception)
-            {
-                throw new FormatException($"Cannot convert {str} to Vector4. Use format \"float, float, float, float\"");
-            }
-        }
-
-        /// <summary>
-        /// Converts a <see cref="string"/> to <see cref="Quaternion"/>
-        /// </summary>
-        /// <param name="str">A string in the format of "float, float, float, float"</param>
-        /// <returns><see cref="Quaternion"/></returns>
-        public static unsafe Quaternion ToQuaternion(this string str)
-        {
-            Vector4 vector = str.ToVector4();
-
-            return *(Quaternion*)&vector;
-        }
-
         /// <summary>
         /// Retrieves the <see cref="Visual"/> object of a <see cref="UIElement"/>
         /// </summary>
@@ -269,6 +113,36 @@ namespace Microsoft.Toolkit.Uwp.UI
             }
 
             obj.SetValue(OffsetProperty, value);
+        }
+
+        /// <summary>
+        /// Gets the <c>"Translation"</c> property of the underlying <see cref="Visual"/> object for a <see cref="UIElement"/>, in <see cref="string"/> form.
+        /// </summary>
+        /// <param name="obj">The <see cref="DependencyObject"/> instance.</param>
+        /// <returns>The <see cref="string"/> representation of the <c>"Translation"</c> property property.</returns>
+        public static string GetTranslation(DependencyObject obj)
+        {
+            if (!DesignTimeHelpers.IsRunningInLegacyDesignerMode && obj is UIElement element)
+            {
+                return GetTranslationForElement(element);
+            }
+
+            return (string)obj.GetValue(TranslationProperty);
+        }
+
+        /// <summary>
+        /// Sets the <c>"Translation"</c> property of the underlying <see cref="Visual"/> object for a <see cref="UIElement"/>, in <see cref="string"/> form.
+        /// </summary>
+        /// <param name="obj">The <see cref="DependencyObject"/> instance.</param>
+        /// <param name="value">The <see cref="string"/> representation of the <c>"Translation"</c> property property to be set.</param>
+        public static void SetTranslation(DependencyObject obj, string value)
+        {
+            if (!DesignTimeHelpers.IsRunningInLegacyDesignerMode && obj is UIElement element)
+            {
+                SetTranslationForElement(value, element);
+            }
+
+            obj.SetValue(TranslationProperty, value);
         }
 
         /// <summary>
@@ -492,6 +366,12 @@ namespace Microsoft.Toolkit.Uwp.UI
             DependencyProperty.RegisterAttached("Offset", typeof(string), typeof(VisualExtensions), new PropertyMetadata(null, OnOffsetChanged));
 
         /// <summary>
+        /// Identifies the Translation attached property.
+        /// </summary>
+        public static readonly DependencyProperty TranslationProperty =
+            DependencyProperty.RegisterAttached("Translation", typeof(string), typeof(VisualExtensions), new PropertyMetadata(null, OnTranslationChanged));
+
+        /// <summary>
         /// Identifies the Opacity attached property.
         /// </summary>
         public static readonly DependencyProperty OpacityProperty =
@@ -554,6 +434,14 @@ namespace Microsoft.Toolkit.Uwp.UI
             if (e.NewValue is string str)
             {
                 SetOffset(d, str);
+            }
+        }
+
+        private static void OnTranslationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is string str)
+            {
+                SetTranslation(d, str);
             }
         }
 
@@ -658,6 +546,37 @@ namespace Microsoft.Toolkit.Uwp.UI
         {
             var visual = GetVisual(element);
             visual.Offset = value.ToVector3();
+        }
+
+        private static string GetTranslationForElement(UIElement element)
+        {
+            CompositionGetValueStatus result = GetVisual(element).Properties.TryGetVector3("Translation", out Vector3 translation);
+
+            return result switch
+            {
+                // The ("G", CultureInfo.InvariantCulture) combination produces a string with the default numeric
+                // formatting style, and using ',' as component separator, so that the resulting text can safely
+                // be parsed back if needed with the StringExtensions.ToVector3(string) extension, which uses
+                // the invariant culture mode by default so that the syntax will always match that from XAML.
+                CompositionGetValueStatus.Succeeded => translation.ToString("G", CultureInfo.InvariantCulture),
+                _ => "<0, 0, 0>"
+            };
+        }
+
+        private static void SetTranslationForElement(string value, UIElement element)
+        {
+            ElementCompositionPreview.SetIsTranslationEnabled(element, true);
+
+            // The "Translation" attached property refers to the "hidden" property that is enabled
+            // through "ElementCompositionPreview.SetIsTranslationEnabled". The value for this property
+            // is not available directly on the Visual class and can only be accessed through its property
+            // set. Note that this "Translation" value is not the same as Visual.TransformMatrix.Translation.
+            // In fact, the latter doesn't require to be explicitly enabled and is actually combined with
+            // this at runtime (ie. the whole transform matrix is combined with the additional translation
+            // from the "Translation" property, if any), and the two can be set and animated independently.
+            // In this case we're just interested in the "Translation" property, which is more commonly used
+            // as it can also be animated directly with a Vector3 animation instead of a Matrix4x4 one.
+            GetVisual(element).Properties.InsertVector3("Translation", value.ToVector3());
         }
 
         private static double GetOpacityForElement(UIElement element)
